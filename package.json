@@ -1,0 +1,26 @@
+{
+  "name": "runner_gunner",
+  "version": "1.0.0",
+  "description": "A game kinda like flappy bird mixed with a shooter.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fissioner/runner_gunner.git"
+  },
+  "author": "Derek Thornton",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fissioner/runner_gunner/issues"
+  },
+  "homepage": "https://github.com/fissioner/runner_gunner#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "socket.io": "^2.1.1",
+    "socket.io-client": "^2.1.1",
+    "username-generator": "^1.1.0"
+  }
+}
