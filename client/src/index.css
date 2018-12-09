@@ -5,7 +5,7 @@ body {
 
 #messages {
   border: 2px solid lightgray;
-  height: 200px;
+  height: 100px;
   margin-top: 20px;
   overflow: scroll;
   word-wrap: break-word;

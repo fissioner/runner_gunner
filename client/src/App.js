@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { broadcastUser, broadcastUsers, broadcastMessages } from './api';
+import { broadcastUser, broadcastUsers, broadcastMessages, joinGame, startGame, stopGame } from './api';
 import Messenger from './components/Messenger';
 
 
@@ -11,7 +11,8 @@ class App extends Component {
       users: [],
       msg: '',
       msgs: [],
-      positions: []
+      positions: [],
+      isStart: false
     }
     broadcastUser((user) => this.setState({
       userID: user
@@ -21,6 +22,12 @@ class App extends Component {
     }));
     broadcastMessages(msgs => this.setState({
       msgs: msgs
+    }))
+    startGame(isStart => this.setState({
+      isStart: isStart
+    }))
+    stopGame(isStart => this.setState({
+      isStart: isStart
     }))
   }
   updateMsg = e => {
@@ -38,10 +45,14 @@ class App extends Component {
     var online = users.filter(u => u !== userID);
     return (
       <div className="App">
+      {!this.state.isStart ?
+      <button className='btn btn-warning' onClick={_ => joinGame()}>Join Game</button> :
+      <div>Game in Progress</div>}
         <header className="online">
           <h5>ONLINE <div className='icon'>{this.state.users.length - 1}</div></h5>
           {online.map( u => <div key={u}>{u}</div>)}
         </header>
+
         <Messenger msg={this.state.msg}
         msgs={this.state.msgs}
         updateMsg={this.updateMsg}
