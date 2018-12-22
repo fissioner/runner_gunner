@@ -11,8 +11,9 @@ export default class Messenger extends Component {
                     e.preventDefault() :
                     submitMessage(e, { msg: this.props.msg, user: this.props.user, stamp: today })}>
                     <input id='message' className='form-control' type='text'
-                        onChange={this.props.updateMsg} value={this.props.msg} />
-                    <button id='submit' className='btn btn-success' type='submit'
+                        onChange={this.props.updateMsg} value={this.props.msg} 
+                        placeholder='Chat with other players' />
+                    <button id='submit' className='btn btn-default' type='submit'
                         onClick={this.props.submitMsg}>Send</button>
                 </form>
                 <div id='messages'>{this.props.msgs.map(m =>

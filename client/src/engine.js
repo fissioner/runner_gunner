@@ -1,12 +1,7 @@
-const express = require('express');
-app = express(),
-    http = require('http').Server(app),
-    io = require('socket.io')(http),
-    UsernameGenerator = require('username-generator'),
-    emojis = require('emojis-list');
-let users = [],
-    messages = [],
-    score = 0,
+import io from 'socket.io-client';
+const  socket = io.connect('http://localhost:5000');
+
+let score = 0,
     platforms = [],
     players = [],
     bullets = [],
@@ -18,10 +13,6 @@ let users = [],
         return num > min ? num : num + min;
     },
     colors = ['black', 'brown', 'white'],
-    c = {
-        height: 500,
-        width: 750
-    },
     loop;
 
 function element(x, y, width, height, color, type, name, emoji) {
@@ -42,11 +33,77 @@ function element(x, y, width, height, color, type, name, emoji) {
     };
 }
 
-function startGame() {
+let c = document.getElementById("canvas"),
+ctx = c.getContext("2d");
+ctx.textAlign = 'center';
+ctx.fillStyle = 'brown';
+ctx.font = "50px Courier";
+ctx.fillText(`Runner Gunner`,c.width/2 ,100);
+ctx.textAlign = 'center';
+ctx.fillStyle = 'black';
+ctx.font = "40px Courier";
+ctx.fillText(`Controls`,c.width/2 ,250);
+ctx.font = "20px Arial";
+ctx.fillText(`Space: shoot`,c.width/2 ,300);
+ctx.fillText(`Hold Up Arrow: jump`,c.width/2 ,330);
+ctx.fillText(`Right Arrow: move right`,c.width/2 ,360);
+ctx.fillText(`Left Arrow: move left`,c.width/2 ,390);
+
+let controls = {
+    left: false,
+    right: false,
+    up: false,
+    active: function(e) {
+        let isActive = e.type === 'keydown' ? true : false;
+        switch(e.keyCode) {
+            case 37: controls.left = isActive;
+            break;
+            case 39: controls.right = isActive;
+            break;
+            case 38: controls.up = isActive;
+            break;
+            default:
+        }
+        if (e.type === 'keydown' && e.keyCode === 32) {
+            bullets.push(new element(players[0].x + 20, players[0].y + 10, 10, 10, 'gray', 'bullet'));
+        }
+        if (players.length > 0) {
+        players[0].controls = controls;
+        }
+    }
+}
+
+function drawSquare(s) {
+    ctx.fillStyle = s.color;
+    ctx.fillRect(s.x,s.y,s.width,s.height);
+}
+function drawElements(els) {
+        els.forEach(type => {
+        type.forEach(el => {
+            if (el.type === 'player') {
+                ctx.font = "35px Arial";
+                ctx.fillText(el.emoji,el.x ,el.y + 35);
+            }
+            else if (el.type === 'enemy') {
+                ctx.font = "40px Arial";
+                ctx.fillText(`👹`,el.x ,el.y + 40);
+            }
+            else {
+                drawSquare(el);
+            }
+        })
+    })
+}
+
+function createGame() {
+    socket.emit('startSolo');
+    window.addEventListener('keydown', controls.active);
+    window.addEventListener('keyup', controls.active);
     loop = setInterval(makeElements, 20);
     lives = 2;
     score = 0;
-    enemies.push(new element(0, 0, 0, 0, 'gray', 'bullet'));
+    enemies.push(new element(0, 0, 0, 0, 'gray', 'enemy_placeholder'));
+    players.push(new element(100 + (100 / 2) - (20 / 2), c.height - 50 - 40, 20, 40, 'orange', 'player', '', '🥐'));
 
     //create initial platforms
 
@@ -118,9 +175,7 @@ function makeElements() {
         platforms.forEach(plat => {
             if (p.x > c.width - 200) {
                 plat.x -= 5;
-                p.x -= .01;
-                let otherPlayer = players.filter(pl => pl !== p);
-                otherPlayer[0].x -= .01;
+                p.x -= .1;
             }
 
             if (p.x >= plat.x && p.x <= plat.x + plat.width) {
@@ -133,29 +188,36 @@ function makeElements() {
         })
     })
 
-    io.emit('drawElements', [players, platforms.slice(0, 6), enemies.slice(1, 10), bullets]);
-
+let els = [players, platforms.slice(0, 6), enemies.slice(1, 10), bullets];
+            ctx.clearRect(0, 0, c.width, c.height);
+            drawElements(els);
+            ctx.font = "30px Arial";
+            ctx.textAlign = 'left';
+            ctx.fillText(`Score: ${score}`,10 ,50);
 
     if (lives < 1 || players.length === 0) {
-            io.emit('gameOver');
-            io.emit('stopGame', false);
+        ctx.font = '90px Arial';
+        ctx.fillStyle = 'red';
+        ctx.fillText(`☠️`, c.width/2 -45, c.height/2 - 20);
             clearInterval(loop);
             platforms = [];
             bullets = [];
             enemies = [];
             players = [];
             console.log('Game Over', lives);
+            window.removeEventListener('keydown', controls.active);
+            window.removeEventListener('keyup', controls.active);
+            socket.emit('stopSolo');
         }
 
     for (let i = 0; i < bullets.length; i++) {
         bullets[i].x += 5;
-        for (let j = 0; j < enemies.length; j++) {
+        for (let j = 0; j < 15; j++) {
             if (bullets[i].x > enemies[j].x && bullets[i].x < enemies[j].x + enemies[j].width &&
                 bullets[i].y > enemies[j].y && bullets[i].y < enemies[j].y + enemies[j].height) {
                 enemies.splice(j, j);
                 bullets[i].x = c.width;
                 score += 1;
-                io.emit('score', score);
             }
         };
         if (bullets[i].x > bullets[i].x + c.width) {
@@ -164,64 +226,4 @@ function makeElements() {
     }
 }
 
-
-io.on('connection', function (socket) {
-    console.log(`New User Connection, Socket ID: ${socket.id}`);
-    let user = UsernameGenerator.generateUsername("-");
-    user = user.split('-');
-    user = user[1] + '-' + user[0];
-
-    users.push(user);
-    socket.emit('user', user);
-    io.emit('users', users);
-    io.emit('msg', messages);
-
-    socket.on('submitMsg', function (msg) {
-        messages.unshift(msg);
-        io.emit('msg', messages);
-    });
-
-    socket.on('disconnect', function () {
-        console.log(`User Disconnected, Socket ID: ${socket.id}`);
-        users = users.filter(u => u !== user);
-        players = players.filter(p => p.name !== user);
-        io.emit('users', users);
-        players = [];
-    });
-
-    socket.on('controls', function (c) {
-        if (players.length === 2) {
-            let player = players.filter(p => p.name === c.userName);
-            player[0].controls = c.controls;
-        }
-    });
-    socket.on('bullets', function (userName) {
-        if (players.length === 2) {
-        let player = players.filter(p => p.name === userName);
-        bullets.push(new element(player[0].x + 20, player[0].y + 10, 10, 10, 'gray', 'bullet'));
-        }
-    });
-    socket.on('join', function (userName) {
-        let exists = players.filter(p => p.name === userName);
-        if (players.length < 3 && exists.length === 0) {
-            players.push(new element(100 + (100 / 2) - (20 / 2), c.height - 50 - 40, 20, 40, 'orange', 'player', userName, emojis[random(0, 2440)]));
-            socket.emit('joinedGame');
-            io.emit('waiting', userName);
-        }
-        if (players.length === 2) {
-            io.emit('startGame', true);
-            startGame();
-            console.log('Game in Progress');
-        }
-    });
-    socket.on('startSolo', function () {
-        io.emit('startGame', true);
-    });
-    socket.on('stopSolo', function () {
-        io.emit('stopGame', false);
-    });
-});
-
-
-const port = process.env.PORT || 5000;
-http.listen(port, () => console.log(`Server listening on port ${port}...`));
+export { createGame };

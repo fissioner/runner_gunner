@@ -1,5 +1,5 @@
 import io from 'socket.io-client';
-const  socket = io.connect('http://localhost:5000/');
+const  socket = io.connect('http://localhost:5000');
 let userName,
     joinedGame = false;
 
@@ -27,11 +27,21 @@ socket.on('joinedGame', function() {
 });
 socket.on('waiting', function(userName) {
     ctx.clearRect(0, 0, c.width, c.height);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'blue';
+    ctx.font = "30px Courier";
+    ctx.fillText(`Waiting for another player to join...`,c.width/2 ,100);
+    ctx.font = "25px Arial";
+    ctx.fillStyle = 'magenta';
+    ctx.fillText(`Lobby: ${userName}`,c.width/2 ,170);
     ctx.fillStyle = 'black';
-    ctx.font = "40px Arial";
-    ctx.fillText(`Waiting for another player to join...`,10 ,50);
-    ctx.font = "20px Arial";
-    ctx.fillText(`Lobby: ${userName}`,10 ,100);
+ctx.font = "40px Courier";
+ctx.fillText(`Controls`,c.width/2 ,250);
+ctx.font = "20px Arial";
+ctx.fillText(`Space: shoot`,c.width/2 ,300);
+ctx.fillText(`Hold Up Arrow: jump`,c.width/2 ,330);
+ctx.fillText(`Right Arrow: move right`,c.width/2 ,360);
+ctx.fillText(`Left Arrow: move left`,c.width/2 ,390);
 })
 function startGame(isStart) {
     socket.on('startGame', data => isStart(data))
@@ -42,6 +52,19 @@ function stopGame(isStart) {
 
 let c = document.getElementById("canvas"),
 ctx = c.getContext("2d");
+ctx.textAlign = 'center';
+ctx.fillStyle = 'brown';
+ctx.font = "50px Courier";
+ctx.fillText(`Runner Gunner`,c.width/2 ,100);
+ctx.textAlign = 'center';
+ctx.fillStyle = 'black';
+ctx.font = "40px Courier";
+ctx.fillText(`Controls`,c.width/2 ,250);
+ctx.font = "20px Arial";
+ctx.fillText(`Space: shoot`,c.width/2 ,300);
+ctx.fillText(`Hold Up Arrow: jump`,c.width/2 ,330);
+ctx.fillText(`Right Arrow: move right`,c.width/2 ,360);
+ctx.fillText(`Left Arrow: move left`,c.width/2 ,390);
 
 let score = 0;
 let controls = {
@@ -94,6 +117,7 @@ socket.on('drawElements', els => {
     ctx.clearRect(0, 0, c.width, c.height);
     drawElements(els);
     ctx.font = "30px Arial";
+    ctx.textAlign = 'left';
     ctx.fillText(`Score: ${score}`,10 ,50);
 });
 socket.on('score', s => {

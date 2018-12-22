@@ -1,6 +1,8 @@
 body {
   margin: 0px;
   padding: 10px;
+  background-color: black;
+  color: white;
 }
 
 #messages {
@@ -18,20 +20,22 @@ caption {
   padding: 0px;
 }
 
-.myMsg, h5 {
-  color: darkblue;
+.myMsg {
+  color: #4666FF;
 }
 
 .online {
   height: 100px;
-  margin: 10px;
-  margin-left: 0px;
+  margin: 14px;
   border: 5px solid lightgray;
   border-radius: 5px;
   padding: 10px;
   width: 300px;
   overflow: scroll;
   word-wrap: break-word;
+  display: inline-block;
+  vertical-align: top;
+  color: gray;
 }
 
 #submit {
@@ -43,7 +47,7 @@ caption {
   width: 25px;
   line-height: 25px;
   color: white;
-  background-color: darkblue;
+  background-color: gray;
   border-radius: 50%;
   text-align: center;
   display: inline-block;
@@ -52,5 +56,25 @@ caption {
 canvas {
   margin: 0 auto;
   display: block;
+}
+
+#join {
+  margin: 10px 0px 10px 0px;
+}
+
+h5 {
+  font-family: 'Audiowide', cursive;
+  color: lime;
+}
+
+#message, #message:focus {
+  background-color: black;
+  color: white;
+}
+
+#root {
+  width: 758px;
+  margin: auto;
+  padding: 10px;
 }
 /*# sourceMappingURL=index.css.map */
