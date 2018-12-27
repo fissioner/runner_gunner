@@ -1,5 +1,4 @@
-import io from 'socket.io-client';
-const  socket = io.connect('http://localhost:5000');
+import { startSolo, stopSolo } from './api';
 
 let score = 0,
     platforms = [],
@@ -96,11 +95,11 @@ function drawElements(els) {
 }
 
 function createGame() {
-    socket.emit('startSolo');
+    startSolo();
     window.addEventListener('keydown', controls.active);
     window.addEventListener('keyup', controls.active);
     loop = setInterval(makeElements, 20);
-    lives = 2;
+    lives = 1;
     score = 0;
     enemies.push(new element(0, 0, 0, 0, 'gray', 'enemy_placeholder'));
     players.push(new element(100 + (100 / 2) - (20 / 2), c.height - 50 - 40, 20, 40, 'orange', 'player', '', '🥐'));
@@ -207,7 +206,7 @@ let els = [players, platforms.slice(0, 6), enemies.slice(1, 10), bullets];
             console.log('Game Over', lives);
             window.removeEventListener('keydown', controls.active);
             window.removeEventListener('keyup', controls.active);
-            socket.emit('stopSolo');
+            stopSolo();
         }
 
     for (let i = 0; i < bullets.length; i++) {

@@ -19,6 +19,10 @@ function submitMessage(e, msg) {
 function broadcastMessages(msgs) {
     socket.on('msg', data => msgs(data));
 }
+function broadcastScores(scores) {
+    socket.on('showScores', data => scores(data));
+}
+
 function joinGame() {
     socket.emit('join', userName);
 }
@@ -129,8 +133,14 @@ socket.on('gameOver', _ => {
     ctx.fillText(`☠️`, c.width/2 -45, c.height/2 - 20);
     joinedGame = false;
 });
+function startSolo() {
+    socket.emit('startSolo');
+}
+function stopSolo() {
+    socket.emit('stopSolo');
+}
 
 window.addEventListener('keydown', controls.active);
 window.addEventListener('keyup', controls.active);
 
-export { broadcastUser, broadcastUsers, submitMessage, broadcastMessages, joinGame, startGame, stopGame };
+export { broadcastUser, broadcastUsers, submitMessage, broadcastMessages, joinGame, startGame, stopGame, startSolo, stopSolo, broadcastScores };

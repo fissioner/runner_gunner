@@ -18,8 +18,10 @@
   },
   "homepage": "https://github.com/fissioner/runner_gunner#readme",
   "dependencies": {
+    "dotenv": "^6.2.0",
     "emojis-list": "^2.1.0",
     "express": "^4.16.4",
+    "pg": "^7.7.1",
     "socket.io": "^2.1.1",
     "socket.io-client": "^2.1.1",
     "username-generator": "^1.1.0"

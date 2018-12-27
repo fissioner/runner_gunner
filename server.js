@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 app = express(),
     http = require('http').Server(app),
@@ -23,6 +24,14 @@ let users = [],
         width: 750
     },
     loop;
+
+const { Client } = require('pg'),
+  client = new Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: true,
+});
+
+client.connect();
 
 function element(x, y, width, height, color, type, name, emoji) {
     this.name = name || '';
@@ -140,12 +149,21 @@ function makeElements() {
             io.emit('gameOver');
             io.emit('stopGame', false);
             clearInterval(loop);
+
+            client.query(`insert into scores values(default, '${players[0].name}', ${score}, default)`, (err, res) => {
+                if (err) throw err;
+              });
             platforms = [];
             bullets = [];
             enemies = [];
             players = [];
-            console.log('Game Over', lives);
+
+            client.query(`select * from scores`, (err, res) => {
+                if (err) throw err;
+                io.emit('showScores', JSON.stringify(res.rows));
+              });
         }
+
 
     for (let i = 0; i < bullets.length; i++) {
         bullets[i].x += 5;
@@ -170,6 +188,12 @@ io.on('connection', function (socket) {
     let user = UsernameGenerator.generateUsername("-");
     user = user.split('-');
     user = user[1] + '-' + user[0];
+
+    client.query(`select * from scores order by score desc limit 25`, (err, res) => {
+        if (err) throw err;
+        io.emit('showScores', JSON.stringify(res.rows));
+        console.log(res.rows);
+      });
 
     users.push(user);
     socket.emit('user', user);

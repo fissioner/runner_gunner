@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { broadcastUser, broadcastUsers, broadcastMessages, joinGame, startGame, stopGame } from './api';
+import { broadcastUser, broadcastUsers, broadcastMessages, joinGame, startGame, stopGame, broadcastScores } from './api';
 import Messenger from './components/Messenger';
 import { createGame } from './engine';
 
@@ -12,7 +12,8 @@ class App extends Component {
       users: [],
       msg: '',
       msgs: [],
-      isStart: false
+      isStart: false,
+      scores: []
     }
     broadcastUser((user) => this.setState({
       userID: user
@@ -29,6 +30,9 @@ class App extends Component {
     stopGame(isStart => this.setState({
       isStart: isStart
     }))
+    broadcastScores(scores => this.setState({
+      scores: JSON.parse(scores)
+    }))
   }
   updateMsg = e => {
     this.setState({
@@ -41,7 +45,7 @@ class App extends Component {
     }), 50);
   }
   render() {
-    const { userID, users } = this.state;
+    const { userID, users, scores } = this.state;
     var online = users.filter(u => u !== userID);
     return (
       <div className="App">
@@ -58,11 +62,7 @@ class App extends Component {
         <div className="online col-sm">
           <h5>High Score: </h5>
           <ol>
-            <li>drowsy-nickname: 86798334</li>
-            <li>chemical-question: 76394852</li>
-            <li>galactic-neuron: 49879872</li>
-            <li>bizarre-sculpture: 287329823</li>
-            <li>cleared-roundness: 278798743</li>
+            {scores.map(s => <li key={'scores' + s.user_id}>{s.name + ': ' + s.score}</li>)}
           </ol>
         </div>
         </div>
