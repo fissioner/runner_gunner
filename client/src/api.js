@@ -24,6 +24,7 @@ function broadcastScores(scores) {
 }
 function soloGame() {
     socket.emit('soloGame', userName);
+    score = 0;
 }
 function joinGame() {
     socket.emit('join', userName);
@@ -50,7 +51,7 @@ ctx.fillText(`Right Arrow: move right`,c.width/2 ,360);
 ctx.fillText(`Left Arrow: move left`,c.width/2 ,390);
 })
 function startGame(isStart) {
-    socket.on('startGame', data => isStart(data))
+    socket.on('startGame', data => isStart(data));
 }
 function stopGame(isStart) {
     socket.on('stopGame', data => isStart(data))
@@ -72,8 +73,8 @@ ctx.fillText(`Hold Up Arrow: jump`,c.width/2 ,330);
 ctx.fillText(`Right Arrow: move right`,c.width/2 ,360);
 ctx.fillText(`Left Arrow: move left`,c.width/2 ,390);
 
-let score = 0;
-let controls = {
+let score = 0,
+    controls = {
     left: false,
     right: false,
     up: false,
@@ -135,14 +136,8 @@ socket.on('gameOver', _ => {
     ctx.fillText(`☠️`, c.width/2 -45, c.height/2 - 20);
     joinedGame = false;
 });
-function startSolo() {
-    socket.emit('startSolo');
-}
-function stopSolo() {
-    socket.emit('stopSolo');
-}
 
 window.addEventListener('keydown', controls.active);
 window.addEventListener('keyup', controls.active);
 
-export { broadcastUser, broadcastUsers, submitMessage, broadcastMessages, joinGame, startGame, stopGame, startSolo, stopSolo, broadcastScores, soloGame };
+export { broadcastUser, broadcastUsers, submitMessage, broadcastMessages, joinGame, startGame, stopGame, broadcastScores, soloGame };

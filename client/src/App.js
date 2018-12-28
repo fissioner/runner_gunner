@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import { broadcastUser, broadcastUsers, broadcastMessages, joinGame, startGame, stopGame, broadcastScores, soloGame } from './api';
 import Messenger from './components/Messenger';
-import { createGame } from './engine';
-
 
 class App extends Component {
   constructor(props) {

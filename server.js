@@ -52,47 +52,46 @@ function element(x, y, width, height, color, type, name, emoji) {
         up: false,
     };
 }
-
+    function createPlatforms() {
+        for (let i = 1; i < 10; i++) {
+            let width = random(50, 400),
+                height = random(50, 400),
+                color = colors[random(0, colors.length)],
+                x = platforms[platforms.length - 1].x + random(50, 200) + platforms[platforms.length - 1].width;
+            platforms.push(new element(x, c.height - height, width, height, color, 'platform'));
+            if (random(0, 10) < 6) {
+                function makeEnemy() {
+                    enemies.push(new element(x + random(10, width - 25), platforms[platforms.length - 1].y - 45, 25, 45, 'green', 'enemy'));
+                    if (random(0, 10) < 5) makeEnemy();
+                }
+                makeEnemy();
+            }
+        }
+    }
 function startGame() {
     loop = setInterval(makeElements, 20);
-    lives = 2;
+    lives = 1;
     score = 0;
     enemies.push(new element(0, 0, 0, 0, 'gray', 'bullet'));
 
-    //create initial platforms
+    //create initial platforms & enemies
 
     platforms.push(new element(100, c.height - 50, 100, 50, 'green', 'platform'));
-    for (let i = 1; i < 500; i++) {
-        let width = random(50, 400),
-            height = random(50, 400),
-            color = colors[random(0, colors.length)],
-            x = platforms[i - 1].x + random(50, 200) + platforms[i - 1].width;
-        platforms.push(new element(x, c.height - height, width, height, color, 'platform'));
-    }
-
-    //create enemies
-
-    platforms.forEach(p => {
-        if (p !== platforms[0] && random(0, 10) < 5) {
-            enemies.push(new element(p.x + random(10, p.width - 30), p.y - 45, 25, 45, 'green', 'enemy'));
-        }
-        function enemy() {
-            if (p !== platforms[0] && random(0, 10) < 4) {
-                enemies.push(new element(p.x + random(10, p.width - 30), p.y - 45, 25, 45, 'green', 'enemy'));
-                enemy();
-            }
-        }
-        enemy();
-    })
+    createPlatforms();
 };
 
 function makeElements() {
     let floor = c.height + 100;
 
+    if (platforms.length < 10) {
+        createPlatforms();
+        //createEnemies(6);
+    }
+
     if (platforms[0].x + platforms[0].width < 0) {
         platforms.shift();
     }
-    if (enemies[1].x + 40 < 0) {
+    if (enemies[1] && enemies[1].x + 40 < 0) {
         enemies.splice(1, 1);
     }
     players.forEach(p => {
@@ -109,7 +108,6 @@ function makeElements() {
         }
         if (p.controls.right) {
             p.x += 5;
-
         }
         if (p.x > c.width - 200) {
             enemies.forEach(e => {
@@ -125,21 +123,17 @@ function makeElements() {
                 lives -= 1;
             }
         })
-        platforms.forEach(plat => {
-            if (p.x > c.width - 200) {
-                plat.x -= 5;
-                if (soloGame) {
-                    p.x -= .1;
-                }
-                else {
-                    p.x -= .01;
-                }
-                if (!soloGame) {
-                let otherPlayer = players.filter(pl => pl !== p);
-                otherPlayer[0].x -= .01;
-                }
+        if (p.x > c.width - 200) {
+            platforms.forEach(plat => {
+            plat.x -= 5;
+            });
+            p.x -= 5;
+            if (!soloGame) {
+            let otherPlayer = players.filter(pl => pl !== p);
+            otherPlayer[0].x -= 5;
             }
-
+        }
+        platforms.forEach(plat => {
             if (p.x >= plat.x && p.x <= plat.x + plat.width) {
                 floor = c.height - 40 - plat.height;
                 if (p.y > floor && p.y < floor + 50) {
@@ -150,8 +144,7 @@ function makeElements() {
         })
     })
 
-    io.emit('drawElements', [players, platforms.slice(0, 6), enemies.slice(1, 100), bullets]);
-
+    io.emit('drawElements', [players, platforms, enemies, bullets]);
 
     if (lives < 1 || players.length === 0) {
             io.emit('gameOver');
@@ -173,24 +166,25 @@ function makeElements() {
             enemies = [];
             players = [];
             soloGame = false;
+            console.log('Game Over');
         }
 
 
     for (let i = 0; i < bullets.length; i++) {
-        bullets[i].x += 5;
+        bullets[i].x += 8;
         for (let j = 0; j < enemies.length; j++) {
             if (bullets[i].x > enemies[j].x && bullets[i].x < enemies[j].x + enemies[j].width &&
                 bullets[i].y > enemies[j].y && bullets[i].y < enemies[j].y + enemies[j].height) {
-                enemies.splice(j, j);
+                enemies.splice(j, 1);
                 bullets[i].x = c.width;
                 score += 1;
                 io.emit('score', score);
             }
         };
-        if (bullets[i].x > bullets[i].x + c.width) {
-            bullets[i].splice(i, i);
+        if (bullets[i].x > c.width) {
+            bullets.splice(i, 1);
         }
-    }
+    } console.log(bullets.length); 
 }
 
 
@@ -233,8 +227,6 @@ io.on('connection', function (socket) {
             let player = players.filter(p => p.name === c.userName);
             player[0].controls = c.controls;
         }
-
-        console.log(c.controls);
     });
     socket.on('bullets', function (userName) {
         if (players.length === 2 || soloGame) {
@@ -254,12 +246,6 @@ io.on('connection', function (socket) {
             startGame();
             console.log('Game in Progress');
         }
-    });
-    socket.on('startSolo', function () {
-        io.emit('startGame', true);
-    });
-    socket.on('stopSolo', function () {
-        io.emit('stopGame', false);
     });
     socket.on('soloGame', function (userName) {
         soloGame = true;
