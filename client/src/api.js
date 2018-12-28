@@ -22,7 +22,9 @@ function broadcastMessages(msgs) {
 function broadcastScores(scores) {
     socket.on('showScores', data => scores(data));
 }
-
+function soloGame() {
+    socket.emit('soloGame', userName);
+}
 function joinGame() {
     socket.emit('join', userName);
 }
@@ -143,4 +145,4 @@ function stopSolo() {
 window.addEventListener('keydown', controls.active);
 window.addEventListener('keyup', controls.active);
 
-export { broadcastUser, broadcastUsers, submitMessage, broadcastMessages, joinGame, startGame, stopGame, startSolo, stopSolo, broadcastScores };
+export { broadcastUser, broadcastUsers, submitMessage, broadcastMessages, joinGame, startGame, stopGame, startSolo, stopSolo, broadcastScores, soloGame };

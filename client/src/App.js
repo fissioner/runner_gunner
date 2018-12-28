@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { broadcastUser, broadcastUsers, broadcastMessages, joinGame, startGame, stopGame, broadcastScores } from './api';
+import { broadcastUser, broadcastUsers, broadcastMessages, joinGame, startGame, stopGame, broadcastScores, soloGame } from './api';
 import Messenger from './components/Messenger';
 import { createGame } from './engine';
 
@@ -51,7 +51,7 @@ class App extends Component {
       <div className="App">
       {!this.state.isStart ?
       <div id='btn' className='row'><div className='col-sm'><button className='btn btn-warning btn-block' onClick={_ => joinGame()}>Join Game</button></div>
-      <div className='col-sm'><button className='btn btn-default btn-block' onClick={createGame}>Solo Game</button></div></div> :
+      <div className='col-sm'><button className='btn btn-default btn-block' onClick={soloGame}>Solo Game</button></div></div> :
       <div id='in-progress' className='text-center'><code>Game in Progress</code></div>}
       <div id='headers'>
       <div className='row'>

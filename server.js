@@ -1,5 +1,6 @@
 require('dotenv').config();
-const express = require('express');
+const express = require('express'),
+sms = require('twilio')(process.env.TWILIO_ID, process.env.TWILIO_TOKEN),
 app = express(),
     http = require('http').Server(app),
     io = require('socket.io')(http),
@@ -14,6 +15,7 @@ let users = [],
     enemies = [],
     lives,
     gravity = 0.5,
+    soloGame = false,
     random = function (min, max) {
         let num = Math.floor(Math.random() * Math.floor(max));
         return num > min ? num : num + min;
@@ -96,7 +98,6 @@ function makeElements() {
     players.forEach(p => {
         if (p.y > c.height) {
             lives -= 1;
-            console.log(lives);
         }
         p.yVelocity += gravity;
         p.y += p.yVelocity;
@@ -127,9 +128,16 @@ function makeElements() {
         platforms.forEach(plat => {
             if (p.x > c.width - 200) {
                 plat.x -= 5;
-                p.x -= .01;
+                if (soloGame) {
+                    p.x -= .1;
+                }
+                else {
+                    p.x -= .01;
+                }
+                if (!soloGame) {
                 let otherPlayer = players.filter(pl => pl !== p);
                 otherPlayer[0].x -= .01;
+                }
             }
 
             if (p.x >= plat.x && p.x <= plat.x + plat.width) {
@@ -142,7 +150,7 @@ function makeElements() {
         })
     })
 
-    io.emit('drawElements', [players, platforms.slice(0, 6), enemies.slice(1, 10), bullets]);
+    io.emit('drawElements', [players, platforms.slice(0, 6), enemies.slice(1, 100), bullets]);
 
 
     if (lives < 1 || players.length === 0) {
@@ -150,18 +158,21 @@ function makeElements() {
             io.emit('stopGame', false);
             clearInterval(loop);
 
+            if (players.length > 0) {
             client.query(`insert into scores values(default, '${players[0].name}', ${score}, default)`, (err, res) => {
                 if (err) throw err;
               });
+
+            client.query(`select * from scores order by score desc limit 25`, (err, res) => {
+                if (err) throw err;
+                io.emit('showScores', JSON.stringify(res.rows));
+              });
+            }
             platforms = [];
             bullets = [];
             enemies = [];
             players = [];
-
-            client.query(`select * from scores`, (err, res) => {
-                if (err) throw err;
-                io.emit('showScores', JSON.stringify(res.rows));
-              });
+            soloGame = false;
         }
 
 
@@ -185,6 +196,11 @@ function makeElements() {
 
 io.on('connection', function (socket) {
     console.log(`New User Connection, Socket ID: ${socket.id}`);
+    /*sms.messages.create({
+        to: process.env.TWILIO_TO,
+        from: process.env.TWILIO_FROM,
+        body: 'A user connected to Runner Gunner'
+    })*/
     let user = UsernameGenerator.generateUsername("-");
     user = user.split('-');
     user = user[1] + '-' + user[0];
@@ -192,7 +208,6 @@ io.on('connection', function (socket) {
     client.query(`select * from scores order by score desc limit 25`, (err, res) => {
         if (err) throw err;
         io.emit('showScores', JSON.stringify(res.rows));
-        console.log(res.rows);
       });
 
     users.push(user);
@@ -214,13 +229,15 @@ io.on('connection', function (socket) {
     });
 
     socket.on('controls', function (c) {
-        if (players.length === 2) {
+        if (players.length === 2 || soloGame) {
             let player = players.filter(p => p.name === c.userName);
             player[0].controls = c.controls;
         }
+
+        console.log(c.controls);
     });
     socket.on('bullets', function (userName) {
-        if (players.length === 2) {
+        if (players.length === 2 || soloGame) {
         let player = players.filter(p => p.name === userName);
         bullets.push(new element(player[0].x + 20, player[0].y + 10, 10, 10, 'gray', 'bullet'));
         }
@@ -244,8 +261,15 @@ io.on('connection', function (socket) {
     socket.on('stopSolo', function () {
         io.emit('stopGame', false);
     });
+    socket.on('soloGame', function (userName) {
+        soloGame = true;
+        socket.emit('joinedGame');
+        players.push(new element(100 + (100 / 2) - (20 / 2), c.height - 50 - 40, 20, 40, 'orange', 'player', userName, emojis[random(0, 2440)]));
+        io.emit('startGame', true);
+        startGame();
+        console.log('Game in Progress');
+    })
 });
-
 
 const port = process.env.PORT || 5000;
 http.listen(port, () => console.log(`Server listening on port ${port}...`));

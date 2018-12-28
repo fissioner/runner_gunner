@@ -187,7 +187,7 @@ function makeElements() {
         })
     })
 
-let els = [players, platforms.slice(0, 6), enemies.slice(1, 10), bullets];
+let els = [players, platforms.slice(0, 6), enemies, bullets];
             ctx.clearRect(0, 0, c.width, c.height);
             drawElements(els);
             ctx.font = "30px Arial";
