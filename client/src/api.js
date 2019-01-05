@@ -6,10 +6,12 @@ shootSound = new Audio('laser1.mp3'),
 killSound = new Audio('kill.mp3'),
 startSound = new Audio('start.mp3'),
 deadSound = new Audio('dead.mp3'),
+music = new Audio('music.mp3'),
 bg = new Image(),
 pf = new Image();
 bg.src = 'bg.png';
 pf.src = 'pf.jpg';
+music.loop = true;
 
 let userName,
     joinedGame = false,
@@ -18,6 +20,9 @@ let userName,
 function playSound(sound) {
     sound.currentTime = 0.0;
         sound.play();
+}
+function stopSound(sound) {
+    sound.pause();
 }
 function broadcastUser(user) {
 socket.on('user', data => {
@@ -42,10 +47,12 @@ function soloGame() {
     socket.emit('soloGame', userName);
     score = 0;
     playSound(startSound);
+    playSound(music);
 }
 function joinGame() {
     socket.emit('join', userName);
     playSound(startSound);
+    playSound(music);
 }
 socket.on('joinedGame', function() {
     joinedGame = true;
@@ -177,6 +184,7 @@ socket.on('score', s => {
 })
 socket.on('gameOver', _ => {
     playSound(deadSound);
+    stopSound(music);
     ctx.font = '90px Arial';
     ctx.fillStyle = 'red';
     ctx.fillText(`☠️`, c.width/2 -45, c.height/2 - 20);
