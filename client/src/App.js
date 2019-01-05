@@ -55,7 +55,7 @@ class App extends Component {
       <div className='row'>
         <div className="online col-sm">
           <h5>ONLINE <div className='icon'>{this.state.users.length - 1}</div></h5>
-          {online.map( u => <div key={u}>{u}</div>)}
+          {online.map( u => <div key={u} className='players'>{u}</div>)}
         </div>
         <div className="online col-sm">
           <h5>High Score: </h5>
@@ -70,10 +70,12 @@ class App extends Component {
         updateMsg={this.updateMsg}
         submitMsg={this.submitMsg}
         user={this.state.userID} />
+
+        <div>
+        </div>
       </div>
     );
   }
 }
 
 export default App;
-export { startGame, stopGame };

@@ -13,6 +13,7 @@ let users = [],
     players = [],
     bullets = [],
     enemies = [],
+    bg = [{type: 'bg', x: 0}, {type: 'bg', x: 750}],
     lives,
     gravity = 0.5,
     soloGame = false,
@@ -50,8 +51,13 @@ function element(x, y, width, height, color, type, name, emoji) {
         left: false,
         right: false,
         up: false,
+        sounds: {
+            jump: false,
+            shoot: false
+        }
     };
 }
+
     function createPlatforms() {
         for (let i = 1; i < 10; i++) {
             let width = random(50, 400),
@@ -68,6 +74,7 @@ function element(x, y, width, height, color, type, name, emoji) {
             }
         }
     }
+
 function startGame() {
     loop = setInterval(makeElements, 20);
     lives = 1;
@@ -82,7 +89,6 @@ function startGame() {
 
 function makeElements() {
     let floor = c.height + 100;
-
     if (platforms.length < 10) {
         createPlatforms();
         //createEnemies(6);
@@ -110,6 +116,10 @@ function makeElements() {
             p.x += 5;
         }
         if (p.x > c.width - 200) {
+            bg.forEach(bg => {
+                if (bg.x < -750) bg.x = 745
+                bg.x -= 5
+            });
             enemies.forEach(e => {
                 e.x -= 5;
             })
@@ -123,6 +133,7 @@ function makeElements() {
                 lives -= 1;
             }
         })
+
         if (p.x > c.width - 200) {
             platforms.forEach(plat => {
             plat.x -= 5;
@@ -143,8 +154,7 @@ function makeElements() {
             }
         })
     })
-
-    io.emit('drawElements', [players, platforms, enemies, bullets]);
+    io.emit('drawElements', [bg, players, platforms, enemies, bullets]);
 
     if (lives < 1 || players.length === 0) {
             io.emit('gameOver');
@@ -184,7 +194,7 @@ function makeElements() {
         if (bullets[i].x > c.width) {
             bullets.splice(i, 1);
         }
-    } console.log(bullets.length); 
+    }
 }
 
 
